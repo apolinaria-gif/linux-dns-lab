@@ -1,0 +1,25 @@
+
+---
+- name: Prepare all Ubuntu machines
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Configure DNS master
+  hosts: dns_master
+  become: true
+  roles:
+    - dns_master
+
+- name: Configure DNS slave
+  hosts: dns_slave
+  become: true
+  roles:
+    - dns_slave
+
+- name: Configure DNS clients
+  hosts: dns_clients
+  become: true
+  roles:
+    - clients

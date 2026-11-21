@@ -1,0 +1,44 @@
+
+key "xfr_client1" {
+    algorithm hmac-sha256;
+    secret "{{ tsig_client1 }}";
+};
+
+key "xfr_client2" {
+    algorithm hmac-sha256;
+    secret "{{ tsig_client2 }}";
+};
+
+view "client1" {
+    match-clients { {{ client1_ip }}; };
+    recursion no;
+
+    zone "{{ dns_domain }}" {
+        type slave;
+        masters {
+            {{ dns_master_ip }} key "xfr_client1";
+        };
+        file "/var/cache/bind/slaves/client1/db.dns.lab";
+    };
+
+    zone "{{ new_dns_domain }}" {
+        type slave;
+        masters {
+            {{ dns_master_ip }} key "xfr_client1";
+        };
+        file "/var/cache/bind/slaves/client1/db.newdns.lab";
+    };
+};
+
+view "client2" {
+    match-clients { {{ client2_ip }}; };
+    recursion no;
+
+    zone "{{ dns_domain }}" {
+        type slave;
+        masters {
+            {{ dns_master_ip }} key "xfr_client2";
+        };
+        file "/var/cache/bind/slaves/client2/db.dns.lab";
+    };
+};

@@ -1,0 +1,24 @@
+---
+- name: Create systemd-resolved configuration directory
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Configure DNS servers for lab domains
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/10-dns-lab.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Resolve]
+      DNS={{ dns_master_ip }} {{ dns_slave_ip }}
+      Domains=~dns.lab ~newdns.lab
+  notify: Restart systemd-resolved
+
+- name: Ensure systemd-resolved is enabled
+  ansible.builtin.service:
+    name: systemd-resolved
+    state: started
+    enabled: true

@@ -1,0 +1,54 @@
+﻿
+---
+- name: Install BIND9 on slave
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - bind9-utils
+    state: present
+
+- name: Create slave zone directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: bind
+    group: bind
+    mode: "0755"
+  loop:
+    - /var/cache/bind/slaves/client1
+    - /var/cache/bind/slaves/client2
+
+- name: Configure slave BIND options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: bind
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Configure slave views and zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: bind
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Remove default zones include outside BIND views
+  ansible.builtin.lineinfile:
+    path: /etc/bind/named.conf
+    regexp: '^\s*include\s+"/etc/bind/named\.conf\.default-zones";\s*$'
+    state: absent
+  notify: Restart bind9
+- name: Validate slave BIND configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Enable and start BIND9
+  ansible.builtin.service:
+    name: bind9
+    state: started
+    enabled: true
+

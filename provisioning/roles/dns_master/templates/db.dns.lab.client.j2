@@ -1,0 +1,16 @@
+
+$TTL 86400
+@ IN SOA ns01.dns.lab. admin.dns.lab. (
+    2026112102
+    3600
+    900
+    604800
+    86400
+)
+
+@       IN NS ns01.dns.lab.
+@       IN NS ns02.dns.lab.
+
+ns01    IN A 192.168.50.10
+ns02    IN A 192.168.50.11
+web1    IN A 192.168.50.15

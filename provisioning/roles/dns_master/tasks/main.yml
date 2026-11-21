@@ -1,0 +1,77 @@
+﻿---
+- name: Install BIND9 on master
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - bind9-utils
+    state: present
+
+- name: Create BIND zone directory
+  ansible.builtin.file:
+    path: /etc/bind/zones
+    state: directory
+    owner: root
+    group: bind
+    mode: '0755'
+
+- name: Configure BIND options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart bind9
+
+- name: Configure BIND views and zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart bind9
+
+- name: Install client1 DNS zone
+  ansible.builtin.template:
+    src: db.dns.lab.client.j2
+    dest: /etc/bind/zones/db.dns.lab.client
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart bind9
+
+- name: Install client2 DNS zone
+  ansible.builtin.template:
+    src: db.dns.lab.j2
+    dest: /etc/bind/zones/db.dns.lab
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart bind9
+
+- name: Install newdns.lab zone
+  ansible.builtin.template:
+    src: db.newdns.lab.j2
+    dest: /etc/bind/zones/db.newdns.lab
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart bind9
+
+- name: Remove default zones include outside BIND views
+  ansible.builtin.lineinfile:
+    path: /etc/bind/named.conf
+    regexp: '^\s*include\s+"/etc/bind/named\.conf\.default-zones";\s*$'
+    state: absent
+  notify: Restart bind9
+- name: Validate BIND configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Enable and start BIND9
+  ansible.builtin.service:
+    name: bind9
+    state: started
+    enabled: true
+
